@@ -1,0 +1,9 @@
+Here's a short description of naming conventions for this project structure.
+
+
+
+
+Models
+
+Files
+    <dataset-desc>_<preprocessing-desc>_<training-desc>.<filetype>

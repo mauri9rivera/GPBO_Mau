@@ -1,0 +1,22 @@
+├───config          : store all configuration files/functions
+│
+├───data            : responsible for all data handling, or contains raw data
+│   └───processed   : contains processed data (like combined/normalized dataframes, tables, etc.)
+│
+├───logs            : repository to contain log files, can also be saved in `/path/to/directory`
+│
+├───output          : directory responsible for all output files, useful for code development
+│   ├───images      : save output images
+│   └───savedmodels : save trained model files
+│
+├───src             : source directory
+|   ├───dev         : scripts under development for quick experiments
+│   ├───engine      : provides a suit of machine learning analytic functions
+│   |───models      : directory containing model definations
+|   └───utils       : utils functions used in all src scripts
+│
+├───static          : other important/useful resources required in the project
+│   ├───images      : store explanatory images, maybe used in documentations and/or ipynb/markdowns
+│   └───ressources  : store any documents used as reference for the development of this project structure
+│
+└───utilities       : utilities directory containing functions and/or submodules, check readme for more information
