@@ -1,0 +1,57 @@
+This GP package provides the tools necessarey to quickly construct a GP, analogous to building a NN in standard PyTorch.
+
+For most GP regression models, you will need to construct the following GPyTorch objects:
+
+1. GP Model - (gpytorch.models.ExactGP)
+2. Likelihood-  (gpytorch.likelihoods.GaussianLikelihood)
+3. Mean - This defines the prior mean of the GP
+4. Kernel - This defines the prior covariance of the GP
+5. MultivariateNormallDistribution(gpytorch.distributions.MultivariateNormal) - This is the object used to represent multivariate normal distributions
+
+
+1. The GP model
+
+    a) __init__: 
+        inputs: training data, likelilhood
+        output: Constructs whatever objects are necessary for the model's forward method.
+    
+    b) forward:
+        inputs: nxd data called 'x'
+        output: MultivariateNormal with the prior mean (u(x)) and covariance (Kxx) evaluated @ x
+
+Like most PyTorch modules, the ExactGP has a .train() (optimizes model hyperparams) and .eval() (computies predictions through the model's posterior) mode. 
+
+
+
+
+
+Training the model
+
+- We can make use of the standard PyTorch optimizers as from torch.optim, and all trainable parameters of the model should be of type torch.nn.Parameter. 
+- All trainable params of the model should be of type torch.nn.Paramater
+- GP models extend torch.nn.Module, so model.parameters() is allowed.
+
+
+
+
+Making predictions with the model
+
+- Remember, a GP model eval mode returns a MultivariateNormal containing the posterior mean and covariance, so model(test_x) returns the model'
+    optimal posterior distr.
+- In contrast, likelihood(model(test_x)) gives us the posterior predictive distribution over the predicted output value.
+
+
+
+
+Raw vs. Actual parameters
+
+The actual learned params of the models (raw_noise, raw_outputscale, raw_lengthscale, etc.) must be positive. To enforce positiveness, GPyTorch has raw params
+that are transformed tot actual values via some constraint. Constraints define transform and inverse_transform methods that turn raw params into real ones.
+
+To avoid the annoyance of dealing with raw param values, all GPyTorch modules that define raw params define convenience getters/setters methods for dealing with 
+transformed values directly. (ex: model.covar_module.outputscale instead of model.covar_module.raw_outputscale_constraint.transform(model.covar_module.raw_outputscale))
+
+We can change a contraint on the fly or when the object of the constrained is created. (ex: likelihood.noise_covar.register_constraint("raw_noise", gpytorch.constraints.Positive()))
+The same thing can be done when working wiith Priors.
+
+
