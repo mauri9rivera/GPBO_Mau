@@ -55,3 +55,10 @@ We can change a contraint on the fly or when the object of the constrained is cr
 The same thing can be done when working wiith Priors.
 
 
+
+Implementing a custom kernel in GPyTorch
+
+Derive GPyTorch's kernel class and implement the forward() method. It shoulld return a torch.tensor or a linear_operator.operators.linear_operator.
+We can register a param using register_paremeter().
+
+You can use MultiDeviceKernel to wrape the base covariance module to use multiple GPUs behind the scenes.

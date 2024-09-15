@@ -4,19 +4,24 @@ import gpytorch
 from matplotlib import pyplot as plt
 
 
-#TODO: Change this to GeneralGP constructer as a wrapper/supper builder for any GP you're going to build. Add args things so that its a super constructor.
-class SimplestGP(gpytorch.models.ExactGP):
+#TODO: Consider using KeOps for fast kernel operations.
 
-    def __init__(self, train_x, train_y, likelihood):
-        super(SimplestGP, self).__init__(train_x, train_y, likelihood)
-        self.mean_module = gpytorch.means.ConstantMean() # Where you define the prior mean
-        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel()) # Where you define which kernel to choose
+class GeneralGP(gpytorch.models.ExactGP):
 
-    def forward(self, x):
+    def __init__(self, train_x, train_y, likelihood, mean_module=gpytorch.means.ConstantMean(), covar_module=gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel()), **kwargs):
+        super(GeneralGP, self).__init__(train_x, train_y, likelihood)
+        self.mean_module = mean_module 
+        self.covar_module = covar_module 
+
+
+    @classmethod
+    def forward(self, x, **kwargs):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
     
+
+    #TODO: Adapt this method to be flexible to the attributes of the model 
     def show_model_state(self):
         model_state = self.state_dict()
 
@@ -25,11 +30,36 @@ class SimplestGP(gpytorch.models.ExactGP):
         print(f"Kernel value: {model_state['covar_module.base_kernel.raw_lengthscale']}")
         print(f"Lengthscale value: {model_state['covar_module.base_kernel.raw_lengthscale']}")
 
+    
     def show_model_hyperparms(self):
 
         print("Model's hyperparameters:")
         for param_name, param in self.named_parameters():
             print(f'Parameter name: {param_name:42} value = {param.item()}')
+
+class SimpleSMPGP(GeneralGP):
+    
+    def __init__(self, train_x, train_y, likelihood, num_mixtures=4):
+        super(SimpleSMPGP, self).__init__(train_x, train_y, likelihood, gpytorch.means.ConstantMean(), gpytorch.kernels.SpectralMixtureKernel(num_mixtures=num_mixtures))
+        self.covar_module.initialize_from_data(train_x, train_y)
+
+    def forward(self,x):
+        mean_x = self.mean_module(x)
+        covar_x = self.covar_module(x)
+        return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+
+class SimpleGP(GeneralGP):
+
+    def __init__(self, train_x, train_y, likelihood=gpytorch.likelihoods.GaussianLikelihood(noise_constraint=gpytorch.constraints.Positive())):
+        super(SimpleGP, self).__init__(train_x, train_y, likelihood)
+        self.mean_module = gpytorch.means.ConstantMean()
+        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+
+    def forward(self, x):
+        mean_x = self.mean_module(x)
+        covar_x = self.covar_module(x)
+        return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+
 
 
 # Example usage
@@ -37,5 +67,10 @@ train_x = torch.linspace(0, 1, 100)
 train_y = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
 # initialize likelihood and model
 likelihood = gpytorch.likelihoods.GaussianLikelihood()
-model = SimplestGP(train_x, train_y, likelihood)
+
+
+model = GeneralGP(train_x, train_y, likelihood)
+SMP_model = SimpleSMPGP(train_x, train_y, likelihood)
+
+
 
