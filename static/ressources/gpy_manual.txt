@@ -62,3 +62,5 @@ Derive GPyTorch's kernel class and implement the forward() method. It shoulld re
 We can register a param using register_paremeter().
 
 You can use MultiDeviceKernel to wrape the base covariance module to use multiple GPUs behind the scenes.
+
+
